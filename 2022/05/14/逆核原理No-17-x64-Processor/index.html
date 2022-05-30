@@ -1,0 +1,137 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta name="description" content="逆核原理No.17--x64_Processor"><meta name="keywords" content="《逆向工程核心原理学习》,逆向"><meta name="author" content="Victory+"><meta name="copyright" content="Victory+"><title>逆核原理No.17--x64_Processor | Victory+'s blog</title><link rel="shortcut icon" href="/melody-favicon.ico"><link rel="stylesheet" href="/css/index.css?version=1.9.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@latest/css/font-awesome.min.css?version=1.9.0"><meta name="format-detection" content="telephone=no"><meta http-equiv="x-dns-prefetch-control" content="on"><link rel="dns-prefetch" href="https://cdn.jsdelivr.net"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><script>var GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"We didn't find any results for the search: ${query}"}},
+  copy: {
+    success: 'Copy successfully',
+    error: 'Copy error',
+    noSupport: 'The browser does not support'
+  },
+  hexoVersion: '6.2.0'
+} </script><meta name="generator" content="Hexo 6.2.0"><link rel="alternate" href="/atom.xml" title="Victory+'s blog" type="application/atom+xml">
+</head><body><canvas class="fireworks"></canvas><i class="fa fa-arrow-right" id="toggle-sidebar" aria-hidden="true"></i><div id="sidebar" data-display="true"><div class="toggle-sidebar-info text-center"><span data-toggle="当前文章概览">站点概览</span><hr></div><div class="sidebar-toc"><div class="sidebar-toc__title">Catalog</div><div class="sidebar-toc__progress"><span class="progress-notice">You've read</span><span class="progress-num">0</span><span class="progress-percentage">%</span><div class="sidebar-toc__progress-bar"></div></div><div class="sidebar-toc__content"><ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#0x00"><span class="toc-number">1.</span> <span class="toc-text">0x00</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B7%AE%E5%BC%82"><span class="toc-number">2.</span> <span class="toc-text">差异</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#CALL%EF%BD%9CJMP%E6%8C%87%E4%BB%A4"><span class="toc-number">2.1.</span> <span class="toc-text">CALL｜JMP指令</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A"><span class="toc-number">2.2.</span> <span class="toc-text">函数调用约定*</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#32bit-os"><span class="toc-number">2.2.1.</span> <span class="toc-text">32bit os</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#64bit-os"><span class="toc-number">2.2.2.</span> <span class="toc-text">64bit os</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%A0%88-amp-%E6%A0%88%E6%A1%A2"><span class="toc-number">2.3.</span> <span class="toc-text">栈&amp;栈桢</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#32bit-version"><span class="toc-number">2.3.1.</span> <span class="toc-text">32bit version</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#64bit-version"><span class="toc-number">2.3.2.</span> <span class="toc-text">64bit version</span></a></li></ol></li></ol></li></ol></div></div><div class="author-info hide"><div class="author-info__avatar text-center"><img src="/img/avatar.png"></div><div class="author-info__name text-center">Victory+</div><div class="author-info__description text-center"></div><hr><div class="author-info-articles"><a class="author-info-articles__archives article-meta" href="/archives"><span class="pull-left">Articles</span><span class="pull-right">25</span></a><a class="author-info-articles__tags article-meta" href="/tags"><span class="pull-left">Tags</span><span class="pull-right">4</span></a><a class="author-info-articles__categories article-meta" href="/categories"><span class="pull-left">Categories</span><span class="pull-right">2</span></a></div><hr><div class="author-info-links"><div class="author-info-links__title text-center">友链(欢迎扩列哟...)</div><a class="author-info-links__name text-center" target="_blank" rel="noopener" href="https://github.com/lcatro">lcatro</a></div></div></div><div id="content-outer"><div id="top-container" style="background-image: url(https://w.wallhaven.cc/full/x8/wallhaven-x8gkpo.jpg)"><div id="page-header"><span class="pull-left"> <a id="site-name" href="/">Victory+'s blog</a></span><i class="fa fa-bars toggle-menu pull-right" aria-hidden="true"></i><span class="pull-right menus">   <a class="site-page" href="/">Home</a><a class="site-page" href="/archives/">Archives</a><a class="site-page" href="/tags/">Tags</a><a class="site-page" href="/categories/">Categories</a><a class="site-page" href="/todolist/">ToDoList</a></span><span class="pull-right"><a class="site-page social-icon search"><i class="fa fa-search"></i><span> Search</span></a></span></div><div id="post-info"><div id="post-title">逆核原理No.17--x64_Processor</div><div id="post-meta"><time class="post-meta__date"><i class="fa fa-calendar" aria-hidden="true"></i> 2022-05-14</time><span class="post-meta__separator">|</span><i class="fa fa-inbox post-meta__icon" aria-hidden="true"></i><a class="post-meta__categories" href="/categories/%E9%80%86%E5%90%91/">-逆向</a><span class="post-meta__separator">|</span><i class="fa fa-comment-o post-meta__icon" aria-hidden="true"></i><a href="/2022/05/14/%E9%80%86%E6%A0%B8%E5%8E%9F%E7%90%86No-17-x64-Processor/#disqus_thread"><span class="disqus-comment-count" data-disqus-identifier="2022/05/14/逆核原理No-17-x64-Processor/"></span></a><div class="post-meta-wordcount"><span>Word count: </span><span class="word-count">1.5k</span><span class="post-meta__separator">|</span><span>Reading time: 5 min</span></div></div></div></div><div class="layout" id="content-inner"><article id="post"><div class="article-container" id="post-content"><p>学习完PE格式在32bit OS和64bit OS的差异之后，本节探讨64bit &amp; 32bit处理器在逆向工程中一些需要了解的差异性，方便在你想过程中根据实际场景做分析思路的变动。</p>
+<br>
+
+
+
+<h3 id="0x00"><a href="#0x00" class="headerlink" title="0x00"></a>0x00</h3><p>32位系统和64位系统有什么区别？ 32位和64位表示CPU一次能处理的最大位数，理论上来说，64位系统处理的数据效率比32位更高，相当于单车道和双车道开车似得，双车道单位时间可以有更多的车辆通行。 但需要内存跟上，而且程序本身也是64位编译才能发挥64位系统的优势。</p>
+<p>那么问题来了32位编译的程序 &amp; 64位编译出来的程序有些什么需要掌握的差异呢？</p>
+<br>
+
+<h3 id="差异"><a href="#差异" class="headerlink" title="差异"></a>差异</h3><h4 id="CALL｜JMP指令"><a href="#CALL｜JMP指令" class="headerlink" title="CALL｜JMP指令"></a>CALL｜JMP指令</h4><p>32位的x86系统中，CALL&#x2F;JMP指令的使用形式为<strong>“地址 指令 CALL&#x2F;JMP”</strong></p>
+<img src="/2022/05/14/%E9%80%86%E6%A0%B8%E5%8E%9F%E7%90%86No-17-x64-Processor/1.png" class="">
+
+
+
+<p>注意到0x00401000 的FF15 XXXXXXXX指令用于调用API，其中XXXXXXXX位绝对地址，指向IAT区域的某个位置。这在x64中形式一致，但<strong>指令解析不同</strong>：</p>
+<img src="/2022/05/14/%E9%80%86%E6%A0%B8%E5%8E%9F%E7%90%86No-17-x64-Processor/2.png" class="">
+
+
+
+<ul>
+<li>首先在指令地址的部分，由x86中的4字节变为8个字节</li>
+<li>X86中<code>FF15</code>之后跟的4个字节的绝对地址，若在64位中<strong>若也采取一样的操作则会造成指令长度的增加</strong>（根据64位处理器索引范围正常也应该是8字节），故为了避免指令长度的增加，64处理器在<code>FF15</code>后的内容也是采取4字节**，<code>不过为了兼容索引范围，将这四个字节的内容解析为相对地址</code>**，相对地址换算的过程：<code> 0x0000000100401000 FF15FA3F0000</code> 0x0000000100401000+3FFA+6 &#x3D; 0x0000000100405000，计算的是相对于当前指令地址的，指令地址➕偏移➕指令长度（6）</li>
+</ul>
+<blockquote>
+<p>（PS：截图取自《逆向工程核心原理》书中内容）</p>
+</blockquote>
+<hr>
+<br>
+
+
+
+<h4 id="函数调用约定"><a href="#函数调用约定" class="headerlink" title="函数调用约定*"></a>函数调用约定*</h4><h5 id="32bit-os"><a href="#32bit-os" class="headerlink" title="32bit os"></a>32bit os</h5><p>32位下的函数调用包含：<code>cdecl </code>、<code>stdcall</code>、<code>fastcall</code></p>
+<p><strong>cdecl方式：</strong><code>C/C++默认方式</code>，参数从右往左依次入栈，主调函数负责栈平衡</p>
+<p><strong>stdcall方式：</strong><code>Windows API默认方式</code>，参数从右往左依次入栈，被调函数负责栈平衡</p>
+<p><strong>fastcall方式：</strong>这种方式<strong>优先选择将参数传入ECX，EDX</strong>，多的参数从右往左依次入栈，由于栈位于内存区域，寄存器则是硬件存取，故称fastcall</p>
+<br>
+
+<h5 id="64bit-os"><a href="#64bit-os" class="headerlink" title="64bit os"></a>64bit os</h5><p>在64位系统中将他们归为一种<strong>变形后的fastcall</strong>，至多可将4个参数存储到寄存器中传递</p>
+<img src="/2022/05/14/%E9%80%86%E6%A0%B8%E5%8E%9F%E7%90%86No-17-x64-Processor/3.png" class="">
+
+
+
+<p>若参数个数超过4个，则从第五个开始会存入栈中，此外函数返回时传递参数过程中使用的栈由调用者清理。ps：尽管函数前四个参数由寄存器传递，可在栈中依旧会保留着四个参数对应的空间。（32bytes）</p>
+<hr>
+<br>
+
+
+
+<h4 id="栈-amp-栈桢"><a href="#栈-amp-栈桢" class="headerlink" title="栈&amp;栈桢"></a>栈&amp;栈桢</h4><p>（这块理解还不是很深）</p>
+<p>64bit OS中栈的大小比函数实际使用的空间要大得多。<strong>在调用子函数（Sub Function）时，不再使用PUSH命令来传递参数，而是通过<code>MOV指令</code>操作寄存器与预定的栈位置来传递。</strong></p>
+<p>使用**VC++**创建的x64程序代码中几乎看不到PUSH&#x2F;POP指令，并且创建栈桢时也不再使用RBP寄存器，而是直接使用RSP，优点是：调用子函数时不需要改变栈指针（RSP），函数返回时也不需要清理栈指针，如此可大幅提升程序的运行速度。</p>
+<p>处于深化对二者不同的理解，将如下源代码编译成不同的版本可执行程序</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;stdio.h&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;windows.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    HANDLE hFile = INVALID_HANDLE_VALUE;</span><br><span class="line"></span><br><span class="line">    hFile = CreateFileA(<span class="string">&quot;c:\\work\\ReverseCore.txt&quot;</span>,    <span class="comment">// 1st - (string)</span></span><br><span class="line">                        GENERIC_READ,                   <span class="comment">// 2nd - 0x80000000</span></span><br><span class="line">                        FILE_SHARE_READ,                <span class="comment">// 3rd - 0x00000001</span></span><br><span class="line">                        <span class="literal">NULL</span>,                           <span class="comment">// 4th - 0000000000</span></span><br><span class="line">                        OPEN_EXISTING,                  <span class="comment">// 5th - 0x00000003</span></span><br><span class="line">                        FILE_ATTRIBUTE_NORMAL,          <span class="comment">// 6th - 0x00000080</span></span><br><span class="line">                        <span class="literal">NULL</span>);                          <span class="comment">// 7th - 0x00000000</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>( hFile != INVALID_HANDLE_VALUE )</span><br><span class="line">        CloseHandle(hFile);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<br>
+
+<h5 id="32bit-version"><a href="#32bit-version" class="headerlink" title="32bit version"></a>32bit version</h5><p>前边提到32位系统下，调用windows API默认使用的stdcall方式，并且栈由被调用API处理。<strong>这里需要关注的过程是API调用过程中的32位调用特征：一是栈桢的设置，二是函数的参数使用过程中栈的清理方。</strong></p>
+<p><strong>main函数的入口在0x0040116A特征是main需要三个参数，找到连续三个push</strong>，在此之前的指令是系统在设置程序需要的环境，只有完成这一步，才能由main接管程序执行，否则会出现程序致命性错误。</p>
+<img src="/2022/05/14/%E9%80%86%E6%A0%B8%E5%8E%9F%E7%90%86No-17-x64-Processor/4.png" class="">
+
+
+
+<p>跟进main里边</p>
+<img src="/2022/05/14/%E9%80%86%E6%A0%B8%E5%8E%9F%E7%90%86No-17-x64-Processor/5.png" class="">
+
+<p>首先可以看到指令地址还是属于用户区域的，另外API CreateFIleA是ascii的版本，所用的7个参数都使用栈来传递。</p>
+<p>push指令进行过后的栈情况</p>
+<img src="/2022/05/14/%E9%80%86%E6%A0%B8%E5%8E%9F%E7%90%86No-17-x64-Processor/6.png" class="">
+
+
+
+<p>跟进0x00401017，来到0x765D3F40，该区域不属于用户区，是核心区</p>
+<img src="/2022/05/14/%E9%80%86%E6%A0%B8%E5%8E%9F%E7%90%86No-17-x64-Processor/7.png" class="">
+
+
+
+<p>跟进</p>
+<img src="/2022/05/14/%E9%80%86%E6%A0%B8%E5%8E%9F%E7%90%86No-17-x64-Processor/8.png" class="">
+
+
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">75E2F9D2    55              push ebp</span><br><span class="line">75E2F9D3    8BEC            mov ebp,esp</span><br><span class="line">;这是在设置栈桢的指令，这是关注点一</span><br></pre></td></tr></table></figure>
+
+<p>接着后边的指令调用了CreateFileW API这是unicode版本，参数一致，还是那7个，不同的是存储方式使用unicode</p>
+<img src="/2022/05/14/%E9%80%86%E6%A0%B8%E5%8E%9F%E7%90%86No-17-x64-Processor/9.png" class="">
+
+
+
+<p>并且相比第一次入栈的方式不同，这里使用的是第一次入栈后用栈桢来定位的，ss:[ebp+0xXX]，运行至0x0075E2F9FC，观察栈的情况：</p>
+<img src="/2022/05/14/%E9%80%86%E6%A0%B8%E5%8E%9F%E7%90%86No-17-x64-Processor/10.png" class="">
+
+
+
+<p>随后在API进行retn前有个leave指令，用于清理栈，恢复栈桢到调用函数前的状态</p>
+<img src="/2022/05/14/%E9%80%86%E6%A0%B8%E5%8E%9F%E7%90%86No-17-x64-Processor/11.png" class="">
+
+
+
+<hr>
+<br>
+
+<h5 id="64bit-version"><a href="#64bit-version" class="headerlink" title="64bit version"></a>64bit version</h5><p>Windbg 64bit下的视图：</p>
+<img src="/2022/05/14/%E9%80%86%E6%A0%B8%E5%8E%9F%E7%90%86No-17-x64-Processor/12.png" class="">
+
+
+
+<p>从CreateFile API的位置看得到栈桢操作并不是32bit下的操作ebp的方式：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">;32bit OD下视图</span><br><span class="line">75E2F9D2    55              push ebp</span><br><span class="line">75E2F9D3    8BEC            mov ebp,esp</span><br></pre></td></tr></table></figure>
+
+<p>64bit是直接操作RSP栈顶指针的，使用<code>sub rsp, 48h</code> 开辟的栈空间大小是48H，也就是72bytes，在函数retn前使用平栈操作 <code>add rsp, 48h</code> ，在观察传参的行为：<code>xor r9d,r9d</code> 清空r9寄存器的低四字节内容。</p>
+<p>ps：64处理器中对于通用寄存器R8-R15，使用在寄存器后加flag标识高低位，b表示一字节，w表示二字节，d表示四字节。</p>
+<p>从入栈的位置可以看出即使前四个参数使用寄存器传递，但栈中依旧保留了空间，rsp～rsp+20h</p>
+</div></article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">Author: </span><span class="post-copyright-info"><a href="mailto:undefined">Victory+</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">Link: </span><span class="post-copyright-info"><a href="https://cvjark.github.io/2022/05/14/逆核原理No-17-x64-Processor/">https://cvjark.github.io/2022/05/14/逆核原理No-17-x64-Processor/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">Copyright Notice: </span><span class="post-copyright-info">All articles in this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless stating additionally.</span></div></div><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E5%AD%A6%E4%B9%A0%E3%80%8B/">《逆向工程核心原理学习》</a><a class="post-meta__tags" href="/tags/%E9%80%86%E5%90%91/">逆向</a></div><div class="addthis_inline_share_toolbox pull-right"></div><script src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-627db6d4a04365ef" async></script><nav id="pagination"><div class="prev-post pull-left"><a href="/2022/05/14/python%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-%E6%B5%AE%E7%82%B9%E5%AF%B9%E8%B1%A1/"><i class="fa fa-chevron-left">  </i><span>python源码剖析No.3--浮点对象</span></a></div><div class="next-post pull-right"><a href="/2022/05/11/%E9%80%86%E6%A0%B8%E7%B3%BB%E5%88%97No-16-PE32/"><span>逆核系列No.16--PE32+</span><i class="fa fa-chevron-right"></i></a></div></nav><div id="disqus_thread"></div><script>var unused = null;
+var disqus_config = function () {
+  this.page.url = 'https://cvjark.github.io/2022/05/14/%E9%80%86%E6%A0%B8%E5%8E%9F%E7%90%86No-17-x64-Processor/';
+  this.page.identifier = '2022/05/14/逆核原理No-17-x64-Processor/';
+  this.page.title = '逆核原理No.17--x64_Processor';
+}
+var d = document, s = d.createElement('script');
+s.src = "https://" + 'https-cvjark-github-io' +".disqus.com/embed.js";
+s.setAttribute('data-timestamp', '' + +new Date());
+(d.head || d.body).appendChild(s);</script><script id="dsq-count-scr" src="https://https-cvjark-github-io.disqus.com/count.js" async></script></div></div><footer class="footer-bg" style="background-image: url(https://w.wallhaven.cc/full/x8/wallhaven-x8gkpo.jpg)"><div class="layout" id="footer"><div class="copyright">&copy;2022 By Victory+</div><div class="framework-info"><span>Victory+</span><span class="footer-separator">❤</span><span>TBaozi</span></div><div class="footer_custom_text"><img src="https://ghchart.rshah.org/Cvjark" alt="Cvjark Github chart" /></div><div class="busuanzi"><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></div></footer><i class="fa fa-arrow-up" id="go-up" aria-hidden="true"></i><script src="https://cdn.jsdelivr.net/npm/animejs@latest/anime.min.js"></script><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@latest/velocity.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-ui-pack@latest/velocity.ui.min.js"></script><script src="/js/utils.js?version=1.9.0"></script><script src="/js/fancybox.js?version=1.9.0"></script><script src="/js/sidebar.js?version=1.9.0"></script><script src="/js/copy.js?version=1.9.0"></script><script src="/js/fireworks.js?version=1.9.0"></script><script src="/js/transition.js?version=1.9.0"></script><script src="/js/scroll.js?version=1.9.0"></script><script src="/js/head.js?version=1.9.0"></script><script src="/js/search/local-search.js"></script><script>if(/Android|webOS|iPhone|iPod|iPad|BlackBerry/i.test(navigator.userAgent)) {
+  $('#nav').addClass('is-mobile')
+  $('footer').addClass('is-mobile')
+  $('#top-container').addClass('is-mobile')
+}</script><div class="search-dialog" id="local-search"><div class="search-dialog__title" id="local-search-title">Local search</div><div id="local-input-panel"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="Search for Posts"></div></div></div><hr><div id="local-search-results"><div id="local-hits"></div><div id="local-stats"><div class="local-search-stats__hr" id="hr"><span>Powered by</span> <a target="_blank" rel="noopener" href="https://github.com/wzpan/hexo-generator-search" style="color:#49B1F5;">hexo-generator-search</a></div></div></div><span class="search-close-button"><i class="fa fa-times"></i></span></div><div class="search-mask"></div><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"jsonPath":"/live2dw/assets/koharu.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":true},"react":{"opacity":0.7},"log":false});</script></body></html>

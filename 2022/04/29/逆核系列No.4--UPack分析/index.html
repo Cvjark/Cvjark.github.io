@@ -1,0 +1,195 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta name="description" content="逆核系列No.4--UPack分析"><meta name="keywords" content="《逆向工程核心原理学习》,逆向"><meta name="author" content="Victory+"><meta name="copyright" content="Victory+"><title>逆核系列No.4--UPack分析 | Victory+'s blog</title><link rel="shortcut icon" href="/melody-favicon.ico"><link rel="stylesheet" href="/css/index.css?version=1.9.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@latest/css/font-awesome.min.css?version=1.9.0"><meta name="format-detection" content="telephone=no"><meta http-equiv="x-dns-prefetch-control" content="on"><link rel="dns-prefetch" href="https://cdn.jsdelivr.net"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><script>var GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"We didn't find any results for the search: ${query}"}},
+  copy: {
+    success: 'Copy successfully',
+    error: 'Copy error',
+    noSupport: 'The browser does not support'
+  },
+  hexoVersion: '6.2.0'
+} </script><meta name="generator" content="Hexo 6.2.0"><link rel="alternate" href="/atom.xml" title="Victory+'s blog" type="application/atom+xml">
+</head><body><canvas class="fireworks"></canvas><i class="fa fa-arrow-right" id="toggle-sidebar" aria-hidden="true"></i><div id="sidebar" data-display="true"><div class="toggle-sidebar-info text-center"><span data-toggle="当前文章概览">站点概览</span><hr></div><div class="sidebar-toc"><div class="sidebar-toc__title">Catalog</div><div class="sidebar-toc__progress"><span class="progress-notice">You've read</span><span class="progress-num">0</span><span class="progress-percentage">%</span><div class="sidebar-toc__progress-bar"></div></div><div class="sidebar-toc__content"><ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%86%99%E5%9C%A8%E5%89%8D%E9%9D%A2"><span class="toc-number">1.</span> <span class="toc-text">写在前面</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%A6%82%E8%A7%88"><span class="toc-number">1.1.</span> <span class="toc-text">概览</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#DOS-HEADER-e-lfanew"><span class="toc-number">1.1.1.</span> <span class="toc-text">DOS_HEADER.e_lfanew</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#IMAGE-NT-HEADERS-FileHeader"><span class="toc-number">1.1.2.</span> <span class="toc-text">_IMAGE_NT_HEADERS.FileHeader</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#IMAGE-NT-HEADERS-OptionalHeader"><span class="toc-number">1.1.3.</span> <span class="toc-text">IMAGE_NT_HEADERS.OptionalHeader</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#IMAGE-SECTION-HEADER%E4%B8%AD%E5%AD%97%E6%AE%B5"><span class="toc-number">1.1.4.</span> <span class="toc-text">IMAGE_SECTION_HEADER中字段</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#%E8%8A%82%E5%8C%BA%E9%87%8D%E5%8F%A0%E3%80%82"><span class="toc-number">1.1.5.</span> <span class="toc-text">节区重叠。</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#RVA2RAW"><span class="toc-number">1.1.6.</span> <span class="toc-text">RVA2RAW</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#%E5%AF%BC%E5%85%A5%E8%A1%A8"><span class="toc-number">1.1.7.</span> <span class="toc-text">导入表</span></a></li></ol></li><li class="toc-item toc-level-5"><a class="toc-link" href="#DOS-HEADER%E7%9B%B8%E5%85%B3"><span class="toc-number">1.2.</span> <span class="toc-text">DOS_HEADER相关</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#IMAGE-NT-HEADERS-gt-FileHeader-SizeOfOptionalHeader"><span class="toc-number">1.3.</span> <span class="toc-text">_IMAGE_NT_HEADERS -&gt; FileHeader.SizeOfOptionalHeader</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#IMAGE-OPTIONAL-HEADER-NumberOfRvaAndSizes"><span class="toc-number">1.4.</span> <span class="toc-text">IMAGE_OPTIONAL_HEADER.NumberOfRvaAndSizes</span></a></li><li class="toc-item toc-level-5"><a class="toc-link"><span class="toc-number">1.5.</span> <span class="toc-text"></span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#IMAGE-SECTION-HEADER%E7%9A%84%E5%86%85%E5%AE%B9"><span class="toc-number">1.6.</span> <span class="toc-text">IMAGE_SECTION_HEADER的内容</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E8%8A%82%E5%8C%BA%E9%87%8D%E5%8F%A0"><span class="toc-number">1.7.</span> <span class="toc-text">节区重叠</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#RVA2RAW-1"><span class="toc-number">1.8.</span> <span class="toc-text">RVA2RAW</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%AF%BC%E5%85%A5%E8%A1%A8-1"><span class="toc-number">1.9.</span> <span class="toc-text">导入表</span></a></li></ol></li></ol></div></div><div class="author-info hide"><div class="author-info__avatar text-center"><img src="/img/avatar.png"></div><div class="author-info__name text-center">Victory+</div><div class="author-info__description text-center"></div><hr><div class="author-info-articles"><a class="author-info-articles__archives article-meta" href="/archives"><span class="pull-left">Articles</span><span class="pull-right">25</span></a><a class="author-info-articles__tags article-meta" href="/tags"><span class="pull-left">Tags</span><span class="pull-right">4</span></a><a class="author-info-articles__categories article-meta" href="/categories"><span class="pull-left">Categories</span><span class="pull-right">2</span></a></div><hr><div class="author-info-links"><div class="author-info-links__title text-center">友链(欢迎扩列哟...)</div><a class="author-info-links__name text-center" target="_blank" rel="noopener" href="https://github.com/lcatro">lcatro</a></div></div></div><div id="content-outer"><div id="top-container" style="background-image: url(https://w.wallhaven.cc/full/v9/wallhaven-v9loo5.png)"><div id="page-header"><span class="pull-left"> <a id="site-name" href="/">Victory+'s blog</a></span><i class="fa fa-bars toggle-menu pull-right" aria-hidden="true"></i><span class="pull-right menus">   <a class="site-page" href="/">Home</a><a class="site-page" href="/archives/">Archives</a><a class="site-page" href="/tags/">Tags</a><a class="site-page" href="/categories/">Categories</a><a class="site-page" href="/todolist/">ToDoList</a></span><span class="pull-right"><a class="site-page social-icon search"><i class="fa fa-search"></i><span> Search</span></a></span></div><div id="post-info"><div id="post-title">逆核系列No.4--UPack分析</div><div id="post-meta"><time class="post-meta__date"><i class="fa fa-calendar" aria-hidden="true"></i> 2022-04-29</time><span class="post-meta__separator">|</span><i class="fa fa-inbox post-meta__icon" aria-hidden="true"></i><a class="post-meta__categories" href="/categories/%E9%80%86%E5%90%91/">-逆向</a><span class="post-meta__separator">|</span><i class="fa fa-comment-o post-meta__icon" aria-hidden="true"></i><a href="/2022/04/29/%E9%80%86%E6%A0%B8%E7%B3%BB%E5%88%97No.4--UPack%E5%88%86%E6%9E%90/#disqus_thread"><span class="disqus-comment-count" data-disqus-identifier="2022/04/29/逆核系列No.4--UPack分析/"></span></a><div class="post-meta-wordcount"><span>Word count: </span><span class="word-count">3.1k</span><span class="post-meta__separator">|</span><span>Reading time: 10 min</span></div></div></div></div><div class="layout" id="content-inner"><article id="post"><div class="article-container" id="post-content"><h4 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h4><p><strong>运行时压缩器：</strong>这类压缩器是针对可执行文件而言的，<strong>经处理后的可执行文件内部含有解压缩代码，文件在运行瞬间于内存中解压缩程序对压缩部分进行代码还原</strong>。本节将要对经Upack压缩后的可执行文件进行PE格式的分析，以达到更好的理解PE文件头以及Upack压缩的巧妙之处（未违背PE格式）。</p>
+<hr>
+
+
+<h5 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h5><blockquote>
+<p><strong>Upack修改的部分：</strong></p>
+<h6 id="DOS-HEADER-e-lfanew"><a href="#DOS-HEADER-e-lfanew" class="headerlink" title="DOS_HEADER.e_lfanew"></a>DOS_HEADER.e_lfanew</h6><h6 id="IMAGE-NT-HEADERS-FileHeader"><a href="#IMAGE-NT-HEADERS-FileHeader" class="headerlink" title="_IMAGE_NT_HEADERS.FileHeader"></a>_IMAGE_NT_HEADERS.FileHeader</h6><p>（相关字段WORD <strong>SizeOfOptionalHeader</strong>，该字段指示PE头另一个结构体成员OptionalHeader的大小，Upack增加了该值，由于在设计PE格式之初为了使用不同大小的OptionalHeader增加了该字段，通常PE32文件格式其大小确定为E0，而64位的PE32+则设置为F0，Upack增加该值的目的为了延后节区表的起始，欺骗PE装载器达到扩容的目的，扩容的空间用于在IMAGE_OPTIONAL_HEADER和第一个IMAGE_SECTION_HEADER之间增加空间供写入解压代码需要。）</p>
+<h6 id="IMAGE-NT-HEADERS-OptionalHeader"><a href="#IMAGE-NT-HEADERS-OptionalHeader" class="headerlink" title="IMAGE_NT_HEADERS.OptionalHeader"></a>IMAGE_NT_HEADERS.OptionalHeader</h6><p>（相关字段DWORD <strong>NumberOfRvaAndSizes</strong>，该字段用于指示OptionalHeader最后一个成员数组DataDirectory的成员个数，正常是16个，值0x10，Upack修改为0x0A，相对减少，使得余下的几个DataDirectory元素的空间可用于写入解压代码）</p>
+<h6 id="IMAGE-SECTION-HEADER中字段"><a href="#IMAGE-SECTION-HEADER中字段" class="headerlink" title="IMAGE_SECTION_HEADER中字段"></a>IMAGE_SECTION_HEADER中字段</h6><p>该结构体内的一些字段对于运行并不是必要的。这些字段如下：（DWORD PointerToRelocations ； DWORD PointerToLinenumbers ； WORD NumberOfRelocations ； WORD NumberOfLinenumbers）</p>
+<h6 id="节区重叠。"><a href="#节区重叠。" class="headerlink" title="节区重叠。"></a>节区重叠。</h6><h6 id="RVA2RAW"><a href="#RVA2RAW" class="headerlink" title="RVA2RAW"></a>RVA2RAW</h6><h6 id="导入表"><a href="#导入表" class="headerlink" title="导入表"></a>导入表</h6></blockquote>
+<p>ps：概览列出的独到这里有个印象即可，后面详细阐述</p>
+<hr>
+<h5 id="DOS-HEADER相关"><a href="#DOS-HEADER相关" class="headerlink" title="DOS_HEADER相关"></a>DOS_HEADER相关</h5>
+
+<p>upack压缩前的DOS_HEADER用于指示PE头的关键字段e_lfnew值由0xE0变为0x10。正常的部分e_lfnew由文件DOS_HEADER加上可选的DOS存根部分在之后才是IMAGE_NT_HEADERS的起始。</p>
+<p><strong>UPack此举的目的在于重叠DOS_HEADER和IMAGE_NT_HEADER</strong></p>
+<p>之所以可以进行该操作是由于DOS_HEADER的关键字段只有两个，其余的字段覆盖也不会对运行造成影响。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> _<span class="title">IMAGE_DOS_HEADER</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">     WORD e_magic;		<span class="comment">//关键字段1⃣️</span></span><br><span class="line">     WORD e_cblp;</span><br><span class="line">     WORD e_cp;</span><br><span class="line">     WORD e_crlc;</span><br><span class="line">     WORD e_cparhdr;</span><br><span class="line">     WORD e_minalloc;</span><br><span class="line">     WORD e_maxalloc;</span><br><span class="line">     WORD e_ss;</span><br><span class="line">     WORD e_sp;</span><br><span class="line">     WORD e_csum;</span><br><span class="line">     WORD e_ip;</span><br><span class="line">     WORD e_cs;</span><br><span class="line">     WORD e_lfarlc;</span><br><span class="line">     WORD e_ovno;</span><br><span class="line">     WORD e_res[<span class="number">4</span>];</span><br><span class="line">     WORD e_oemid;</span><br><span class="line">     WORD e_oeminfo;</span><br><span class="line">     WORD e_res2[<span class="number">10</span>];</span><br><span class="line">     LONG e_lfanew;		<span class="comment">//关键字段2⃣️</span></span><br><span class="line">&#125; IMAGE_DOS_HEADER, *PIMAGE_DOS_HEADER;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>UPack压缩后的PE头布局在十六进制下的视图：</p>
+
+
+<p>e_lfnew &#x3D; 0x00000010 使得IMAGE_NT_HEADERS在第二行就开始了。</p>
+<hr>
+<h5 id="IMAGE-NT-HEADERS-gt-FileHeader-SizeOfOptionalHeader"><a href="#IMAGE-NT-HEADERS-gt-FileHeader-SizeOfOptionalHeader" class="headerlink" title="_IMAGE_NT_HEADERS -&gt; FileHeader.SizeOfOptionalHeader"></a>_IMAGE_NT_HEADERS -&gt; FileHeader.SizeOfOptionalHeader</h5><p>FileHeader.SizeOfOptionalHeader用于指示_IMAGE_NT_HEADERS结构下的第三个结构体成员_IMAGE_OPTIONAL_HEADER所占的大小。</p>
+
+
+<p>示例文件中的的SizeOfOptionalHeader的值由0x00E0变为0x0148，<strong>此举的目的在于拉伸_IMAGE_OPTIONAL_HEADER的大小</strong>（实际不需要用那么多，这是为了让过多余的空间可用于存放解压代码，在文件运行的瞬间执行，将压缩的PE头进行还原）。</p>
+<p>SizeOfOptionalHeader字段的存在也是在设计之初为了兼容不同大小的SizeOfOptionalHeader而存在的，32位的PE32中-IMAGE_OPTIONAL_HEADER大小为0xE0，64位下PE32中_IMAGE_OPTIONAL_HEADER的大小为0xF0。</p>
+<p>此外，压缩后的_IMAGE_FILE_HEADER结束是从0x26+2（最后一个字段Characteristic占2byte）也就是从0x28是为_IMAGE_OPTIONAL_HEADER的起始位置。</p>
+<p>故<strong>_IMAGE_OPTIONAL_HEADER的起始位置0x28</strong>+SizeOfOptionalHeader（0x148）&#x3D;0x170为_IMAGE_SECTION_HEADER的开端。</p>
+<p><strong>分析压缩后的OptionalHeader：区域0x28～0x16F，其中0x28～0x108是正常的OptionalHeader，0x108～0x16F是扩容出来的部分，可用于写入解压缩过程需要的资源</strong></p>
+
+
+<hr>
+<h5 id="IMAGE-OPTIONAL-HEADER-NumberOfRvaAndSizes"><a href="#IMAGE-OPTIONAL-HEADER-NumberOfRvaAndSizes" class="headerlink" title="IMAGE_OPTIONAL_HEADER.NumberOfRvaAndSizes"></a>IMAGE_OPTIONAL_HEADER.NumberOfRvaAndSizes</h5><p>NumberOfRvaAndSizes用于指示OptionalHeader最后一个成员数组DataDirectory的成员个数，正常是16个，值0x10，Upack修改为0x0A。</p>
+<p>为验证上述结论，对比压缩前后的OptionalHeader.NumberOfRvaAndSizes</p>
+<p>压缩前，直接使用工具读取即可：</p>
+
+
+<p>压缩后的可使用OptionalHeader.NumberOfRvaAndSizes字段在OptionalHeader的相对偏移计算，文首的PE图中得知该字段相对于OptionalHeader的偏移为0x5C，又步骤二分析的值OptionalHeader的起始位置是0x28，因此计算得到压缩后的OptionalHeader.NumberOfRvaAndSizes &#x3D; 0x0A</p>
+
+
+<p>UPack此举的目的在于将_IMAGE_OPTIONAL_HEADER最后一个结构体数组成员的元素的不必要元素进行缩减，所节省出来的空间可用于写入解压缩代码。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> _<span class="title">IMAGE_DATA_DIRECTORY</span> &#123;</span></span><br><span class="line">  DWORD VirtualAddress;</span><br><span class="line">  DWORD Size;</span><br><span class="line">&#125; IMAGE_DATA_DIRECTORY, *PIMAGE_DATA_DIRECTORY;		<span class="comment">//每个数组成员元素占8byte</span></span><br></pre></td></tr></table></figure>
+
+<p>至此可以回答步骤二中留的疑问：经扩展后的OptionalHeader（0xE0 -&gt; 0x108）哪个部分开始存放着UPack的代码？</p>
+<p>答：_IMAGE_OPTIONAL_HEADER最后一个成员_IMAGE_DATA_DIRECTORY的相对于OptionalHeader的起始位置偏移时0x60（从文首PE结构图得出）并且经过缩减实际交付OptionalHeader的_IMAGE_DATA_DIRECTORY只有10个单元，每个单元占8byte，OptionalHeader起始位置0x28，故UPack的代码区域为0xD8～0x16F：</p>
+
+
+<p>OllyDbg中选中部分对应的部分代码：</p>
+
+
+<hr>
+<h5 id=""><a href="#" class="headerlink" title=""></a></h5><h5 id="IMAGE-SECTION-HEADER的内容"><a href="#IMAGE-SECTION-HEADER的内容" class="headerlink" title="IMAGE_SECTION_HEADER的内容"></a>IMAGE_SECTION_HEADER的内容</h5><p>经过前面的分析，已经知道_IMAGE_SECTION_HEADER的起始位置是0x170，工具分析出压缩后的文件也是三个节区，再根据每个节区的结构体大小0x28可分出三个节区头。</p>
+
+
+
+
+<p>查资料了解到UPack会利用节区头中一些对程序运行无意义的字段用于存放UPack解压缩是需要用到的一些数据，下面就剖析哪些字段被挪用以及都写入了什么</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> _<span class="title">IMAGE_SECTION_HEADER</span> &#123;</span></span><br><span class="line">  BYTE  Name[IMAGE_SIZEOF_SHORT_NAME];</span><br><span class="line">  <span class="class"><span class="keyword">union</span> &#123;</span></span><br><span class="line">    DWORD PhysicalAddress;</span><br><span class="line">    DWORD VirtualSize;</span><br><span class="line">  &#125; Misc;</span><br><span class="line">  DWORD VirtualAddress;</span><br><span class="line">  DWORD SizeOfRawData;</span><br><span class="line">  DWORD PointerToRawData;</span><br><span class="line">  DWORD PointerToRelocations;		<span class="comment">//对程序运行无意义的字段1</span></span><br><span class="line">  DWORD PointerToLinenumbers;		<span class="comment">//对程序运行无意义的字段2</span></span><br><span class="line">  WORD  NumberOfRelocations;		<span class="comment">//对程序运行无意义的字段3</span></span><br><span class="line">  WORD  NumberOfLinenumbers;		<span class="comment">//对程序运行无意义的字段4，一共12个byte的内容。</span></span><br><span class="line">  DWORD Characteristics;</span><br><span class="line">&#125; IMAGE_SECTION_HEADER, *PIMAGE_SECTION_HEADER;</span><br></pre></td></tr></table></figure>
+
+<p>即三个节区对应的节区头IMAGE_SECTION_HEADER中有12byte的空间可被UPack利用。在由文首的PE结构图中相对位置可以知道：相对每个节区头起始的偏移0x18 - 0x24的数据会是UPack的内容，下面是压缩前后的对比（举例第一个节区即可，其他类似）：</p>
+
+
+
+
+<hr>
+<h5 id="节区重叠"><a href="#节区重叠" class="headerlink" title="节区重叠"></a>节区重叠</h5>
+
+<p>使用工具查看经UPack压缩后的文件的节区信息，结果第一、三节区在文件中的偏移地址和所占文件的大小一致（文件起始地址：0x10，大小：0x1F0）</p>
+<p>PE格式第一部分是DOS_HEADER的部分，图中的信息说明了经压缩后的文件从0x000～0x1F0这区间内的内容映射到内存会是三个部分（DOS_HEADER（RAW0x10属于该部分）、第一个节区&amp;第三个节区（节区信息决定）），在学习《逆向工程核心原理》一书中提到了第一个节区的内存空间（VirtualSize）实际上是未压缩前文件的ImageSize大小（字段位于OptionalHeader.SizeOfImage），这里做下验证：</p>
+
+
+<p>回到先前的分析，节区信息中关于第一、三节区的raw size &#x3D; 0x1F0这实际上很小，而第二个节区的raw size &#x3D; 0xAE28 非常大。</p>
+<p>书中提到的是第二个节区占据文件大部分空间实际上这里存放的是未经压缩的文件信息在这里，然后在压缩文件运行瞬间，借由先前分析的一些用于写入UPack解压代码和数据（主要是OptionalHeader到SectionHeader扩容出来的空间【0x108～0x16F】）进行处理，<strong>会将第二节区的内容进行解压到第一个节区与原SizeOfImage相同的内存空间。</strong></p>
+<hr>
+<h5 id="RVA2RAW-1"><a href="#RVA2RAW-1" class="headerlink" title="RVA2RAW"></a>RVA2RAW</h5><p>解压Upack压缩的代码（在第二个节区）到第一节区，需要找到程序的入口以正常运行程序，涉及到RVA2RAW的地址转换</p>
+<p>RVA2RAW的变换（注意PointToRawData要遵循值是OptionalHeader.FileAlignment或OptionalHeader.SectionAlignment的整数倍规则）</p>
+<p>各种PE分析软件对于经UPack压缩后的文件束手无策的一点原因是无法完成有效的RVA to RAW转换，导致结构错乱，无法正常识别出文件，下边是RVA2RAW的转换方法：<br>$$<br>RAW - PointToRawData &#x3D; RVA - VirtualAddress<br>$$</p>
+<blockquote>
+<p>其中VirtualAddress、PointToRawData是在节区头中相应字段读取出来的值，是已知值。</p>
+</blockquote>
+<p>以计算文件EntryPoint为例，AddressOfEntryPoint的RVA在OptionalHeader中有字段记录。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> _<span class="title">IMAGE_OPTIONAL_HEADER</span> &#123;</span></span><br><span class="line">  WORD                 Magic;</span><br><span class="line">  BYTE                 MajorLinkerVersion;</span><br><span class="line">  BYTE                 MinorLinkerVersion;</span><br><span class="line">  DWORD                SizeOfCode;</span><br><span class="line">  DWORD                SizeOfInitializedData;</span><br><span class="line">  DWORD                SizeOfUninitializedData;</span><br><span class="line">  DWORD                AddressOfEntryPoint;		<span class="comment">//EntryPoint的RVA记录字段</span></span><br><span class="line">  DWORD                BaseOfCode;</span><br><span class="line">  DWORD                BaseOfData;</span><br><span class="line">  DWORD                ImageBase;</span><br><span class="line">  DWORD                SectionAlignment;</span><br><span class="line">  DWORD                FileAlignment;		<span class="comment">//这个字段先记着，后文会使用到。</span></span><br><span class="line">  WORD                 MajorOperatingSystemVersion;</span><br><span class="line">  WORD                 MinorOperatingSystemVersion;</span><br><span class="line">  WORD                 MajorImageVersion;</span><br><span class="line">  WORD                 MinorImageVersion;</span><br><span class="line">  WORD                 MajorSubsystemVersion;</span><br><span class="line">  WORD                 MinorSubsystemVersion;</span><br><span class="line">  DWORD                Win32VersionValue;</span><br><span class="line">  DWORD                SizeOfImage;</span><br><span class="line">  DWORD                SizeOfHeaders;</span><br><span class="line">  DWORD                CheckSum;</span><br><span class="line">  WORD                 Subsystem;</span><br><span class="line">  WORD                 DllCharacteristics;</span><br><span class="line">  DWORD                SizeOfStackReserve;</span><br><span class="line">  DWORD                SizeOfStackCommit;</span><br><span class="line">  DWORD                SizeOfHeapReserve;</span><br><span class="line">  DWORD                SizeOfHeapCommit;</span><br><span class="line">  DWORD                LoaderFlags;</span><br><span class="line">  DWORD                NumberOfRvaAndSizes;</span><br><span class="line">  IMAGE_DATA_DIRECTORY DataDirectory[IMAGE_NUMBEROF_DIRECTORY_ENTRIES];</span><br><span class="line">&#125; IMAGE_OPTIONAL_HEADER32, *PIMAGE_OPTIONAL_HEADER32;</span><br></pre></td></tr></table></figure>
+
+<p>以UPack压缩后的notepad.exe进行分析：</p>
+<p>由文首给出的PE结构图可知AddressOfEntryPoint相对于OptionalHeader的偏移是0x10，</p>
+<p>由前篇内容已分析出OptionalHeader的起始地址是0x28，可读取EntryPoint的RVA是0x00001018</p>
+
+
+<p>以节区一为例，经UPack扩展后的OptionalHeader（大小由0xE0扩到0x148）结束位置为0x170（ps：上文分析的结果），结合_IMAGE_SECTION_HEADER结构体以及文首图中SectionHeader中字段的相对偏移</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> _<span class="title">IMAGE_SECTION_HEADER</span> &#123;</span></span><br><span class="line">  BYTE  Name[IMAGE_SIZEOF_SHORT_NAME];</span><br><span class="line">  <span class="class"><span class="keyword">union</span> &#123;</span></span><br><span class="line">    DWORD PhysicalAddress;</span><br><span class="line">    DWORD VirtualSize;</span><br><span class="line">  &#125; Misc;</span><br><span class="line">  DWORD VirtualAddress;</span><br><span class="line">  DWORD SizeOfRawData;</span><br><span class="line">  DWORD PointerToRawData;</span><br><span class="line">  DWORD PointerToRelocations;</span><br><span class="line">  DWORD PointerToLinenumbers;</span><br><span class="line">  WORD  NumberOfRelocations;</span><br><span class="line">  WORD  NumberOfLinenumbers;</span><br><span class="line">  DWORD Characteristics;</span><br><span class="line">&#125; IMAGE_SECTION_HEADER, *PIMAGE_SECTION_HEADER;</span><br></pre></td></tr></table></figure>
+
+<p>可读出VitualAddress &#x3D; 0x00001000、 PointToRawData &#x3D; 0x00000010</p>
+
+
+<p>根据上文提到的转换公式，可知RAW &#x3D; RVA - VirtualAddress + PointToRawData </p>
+<p>代入则 RAW&#x3D;  0x00001018 - 0x00001000 + 0x00000010 &#x3D; 0x00000028，查看0x00000028：</p>
+
+
+<p>可以看到此处是字符串LoadLibraryA字符串的位置，并不是节区一代码的开始。</p>
+<p><strong>这是为什么呢？</strong></p>
+<p>《逆向工程核心技术》书中提到<code> 一般而言，指向节区开始的文件偏移PointToRawData字段的值应该是FileAlignment的整数倍。</code>FileAlignment的值在OptionalHeader中，该字段在结构体中相对偏移查看经UPack压缩后的值：</p>
+
+
+<p>故先前计算的 RAW &#x3D; RVA - VirtualAddress + PointToRawData 中PointToRawData 应为0，故实际上的节区一代码区间从</p>
+<p>RAW&#x3D;  0x00001018 - 0x00001000 + 0x00000000 &#x3D; 0x00000018开始：</p>
+
+
+<p>在OllyDbg中查看部分代码：</p>
+
+
+<hr>
+<h5 id="导入表-1"><a href="#导入表-1" class="headerlink" title="导入表"></a>导入表</h5><p>IMAGR_IMPORT_DESCRIPTOR的信息存放于OptionalHeader.DataDirectory数组中</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> _<span class="title">IMAGE_DATA_DIRECTORY</span> &#123;</span></span><br><span class="line">  DWORD VirtualAddress;</span><br><span class="line">  DWORD Size;</span><br><span class="line">&#125; IMAGE_DATA_DIRECTORY, *PIMAGE_DATA_DIRECTORY;</span><br></pre></td></tr></table></figure>
+
+<p>每个数组元素占8byte，而导入表的信息是存放于数组的第二个元素</p>
+
+
+<p>查看UPack处理后的导入表信息：</p>
+
+
+<p>可知导入表的RVA &#x3D; 0x000271EE 导入表的Size &#x3D; 0x00000014.</p>
+<p>根据RVA2RAW转换公式计算需要用到节区对应的VirtualAddress 和 PointToRawData，先查看RVA所在的节区</p>
+
+
+<p>即导入表所在的节区的是第三节区，需要查看第三节区的 VirtualAddress 和 PointToRawData</p>
+<p>第三节区的内容：</p>
+
+
+<p>由此得到第三节区的 VirtualAddress &#x3D; 0x00027000 和 PointToRawData &#x3D; 0x00000010（根据OptionalHeader.FileAlignment &#x3D; 0x200）</p>
+<p>故导入表的RAW &#x3D; 0x000271EE  - 0x00027000  + 0 &#x3D; 0x000001EE。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> _<span class="title">IMAGE_IMPORT_DESCRIPTOR</span> &#123;</span></span><br><span class="line">    <span class="class"><span class="keyword">union</span> &#123;</span></span><br><span class="line">        DWORD Characteristics;</span><br><span class="line">        DWORD OriginalFirstThunk;	<span class="comment">//指向输入名称表的表（INT）的RVA   </span></span><br><span class="line">    &#125;;																						</span><br><span class="line">    DWORD TimeDateStamp;																	</span><br><span class="line">    DWORD ForwarderChain;																	</span><br><span class="line">    DWORD Name;					<span class="comment">//指向导入映像文件的名称										</span></span><br><span class="line">    DWORD FirstThunk;			<span class="comment">//指向输入地址表的表（IAT）的RVA  </span></span><br><span class="line">&#125; IMAGE_IMPORT_DESCRIPTOR;</span><br><span class="line">---------------------------------------------------------------------</span><br><span class="line"> </span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> _<span class="title">IMAGE_THUNK_DATA32</span> &#123;</span></span><br><span class="line">    <span class="class"><span class="keyword">union</span> &#123;</span></span><br><span class="line">        PBYTE  ForwarderString;		<span class="comment">//指向一个转向者字符串的RVA；</span></span><br><span class="line">        PDWORD Function;      		<span class="comment">//被输入的函数的内存地址；</span></span><br><span class="line">        DWORD Ordinal;      	 	<span class="comment">//被输入的API的序数值</span></span><br><span class="line">        PIMAGE_IMPORT_BY_NAME  AddressOfData;      <span class="comment">//指向IMAGE_IMPORT_BY_NAME</span></span><br><span class="line">    &#125; u1;</span><br><span class="line">&#125; IMAGE_THUNK_DATA32;</span><br><span class="line">---------------------------------------------------------------------</span><br><span class="line"> </span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> _<span class="title">IMAGE_IMPORT_BY_NAME</span> &#123;</span></span><br><span class="line">    WORD Hint;<span class="comment">//ordinal</span></span><br><span class="line">    BYTE Name[<span class="number">1</span>];<span class="comment">//function name string</span></span><br><span class="line">&#125; IMAGE_IMPORT_BY_NAME, *PIMAGE_IMPORT_BY_NAME;</span><br><span class="line">---------------------------------------------------------------------</span><br></pre></td></tr></table></figure>
+
+<p>导入表每个成员都是一个_IMAGE_IMPORT_DESCRIPTOR，占20byte，且结构体数组最后以NULL结构体结束。查看0x000001EE</p>
+
+
+<p>可以看到末20byte为0，故导入表只有一个成员，即选中的前20byte.</p>
+<p>指向INT的字段OriginalFirstThunk &#x3D; 0x00000000 指向IAT的字段FirstThunk &#x3D; 0x000011E8，但需要注意的是：</p>
+
+
+<p>即RAW 0x200起始往后都不是节区的内容。</p>
+<p>透过上述的两个关键字段可以看出文件导入了哪些DLL以及导入了哪些API，但指向INT的字段OriginalFirstThunk的RVA &#x3D; 0（略显奇怪）但引用《逆向工程核心原理》的话：</p>
+<blockquote>
+<p>一般而言，跟踪OriginalFirstThunk（INT）能够发现API名称字符串，但是像UPack这样OriginalFirstThunk的RVA&#x3D;0时，跟踪FirstThunk （IAT）也无妨，只要INT、IAT其中有一个有API名称字符串即可。</p>
+</blockquote>
+<p>这里跟踪FirstThunk 的RVA（0x11E8），计算RAW的值需要节区三中的VirtualAddress以及PointerToRawData的值。</p>
+
+
+<p>根据文首的PE结构图中节区的大小以及字段的相对偏移可以看出：VirtualAddress &#x3D; 0x00001000  PointerToRawData &#x3D; 0x00000010</p>
+<p>注意SectionAlignment</p>
+
+
+<p>故RAW &#x3D; 0x11E8 - 0x1000 + 0x0000 &#x3D; 0x01E8</p>
+<p>FirstThunk RAW &#x3D;  0x01E8 指向的是一个IMAGE_DIRECTORY_ENTRY_IMPORT结构体数组</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">IMAGE_DIRECTORY_ENTRY_IMPORT</span><br><span class="line"><span class="class"><span class="keyword">struct</span> _<span class="title">IMAGE_DIRECTORY_ENTRY_IMPORT</span>&#123;</span></span><br><span class="line">    DWORD VirtualAddress;</span><br><span class="line">    DWORD Size;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>至此，可以解读0x01E8中的内容：以8byte内容为单元</p>
+
+
+<p>RVA &#x3D; 0x00000028 Size &#x3D; 0x000000BE</p>
+
+
+<p><strong>RVA &#x3D; 0x00000028不属于节区部分，属于header区域的部分，在header中RVA &#x3D; RAW，故不需要转化</strong>，直接查看即可：</p>
+
+
+<p>同理，可以查看导入的DLL名称，读取出来的值为0x00000002，这也是header的部分，因此不需要转换，上图也可以看出导入的是KERNEL32.DLL，往后查看size &#x3D; 0xBE的内容可以查看当前KERNEL32.DLL载入的所有函数。</p>
+</div></article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">Author: </span><span class="post-copyright-info"><a href="mailto:undefined">Victory+</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">Link: </span><span class="post-copyright-info"><a href="https://cvjark.github.io/2022/04/29/逆核系列No.4--UPack分析/">https://cvjark.github.io/2022/04/29/逆核系列No.4--UPack分析/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">Copyright Notice: </span><span class="post-copyright-info">All articles in this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless stating additionally.</span></div></div><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E5%AD%A6%E4%B9%A0%E3%80%8B/">《逆向工程核心原理学习》</a><a class="post-meta__tags" href="/tags/%E9%80%86%E5%90%91/">逆向</a></div><div class="addthis_inline_share_toolbox pull-right"></div><script src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-627db6d4a04365ef" async></script><nav id="pagination"><div class="prev-post pull-left"><a href="/2022/05/01/%E9%80%86%E6%A0%B8%E7%B3%BB%E5%88%97No-5-Upack%E5%8E%8B%E7%BC%A9%E8%BF%87%E5%90%8E%E7%9A%84OEP/"><i class="fa fa-chevron-left">  </i><span>逆核系列No.5--Upack压缩过后的OEP</span></a></div><div class="next-post pull-right"><a href="/2022/04/28/%E9%80%86%E6%A0%B8%E7%B3%BB%E5%88%97No.3--%E8%8A%82%E5%8C%BA%E5%88%A0%E9%99%A4/"><span>逆核系列No.3--节区删除</span><i class="fa fa-chevron-right"></i></a></div></nav><div id="disqus_thread"></div><script>var unused = null;
+var disqus_config = function () {
+  this.page.url = 'https://cvjark.github.io/2022/04/29/%E9%80%86%E6%A0%B8%E7%B3%BB%E5%88%97No.4--UPack%E5%88%86%E6%9E%90/';
+  this.page.identifier = '2022/04/29/逆核系列No.4--UPack分析/';
+  this.page.title = '逆核系列No.4--UPack分析';
+}
+var d = document, s = d.createElement('script');
+s.src = "https://" + 'https-cvjark-github-io' +".disqus.com/embed.js";
+s.setAttribute('data-timestamp', '' + +new Date());
+(d.head || d.body).appendChild(s);</script><script id="dsq-count-scr" src="https://https-cvjark-github-io.disqus.com/count.js" async></script></div></div><footer class="footer-bg" style="background-image: url(https://w.wallhaven.cc/full/v9/wallhaven-v9loo5.png)"><div class="layout" id="footer"><div class="copyright">&copy;2022 By Victory+</div><div class="framework-info"><span>Victory+</span><span class="footer-separator">❤</span><span>TBaozi</span></div><div class="footer_custom_text"><img src="https://ghchart.rshah.org/Cvjark" alt="Cvjark Github chart" /></div><div class="busuanzi"><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></div></footer><i class="fa fa-arrow-up" id="go-up" aria-hidden="true"></i><script src="https://cdn.jsdelivr.net/npm/animejs@latest/anime.min.js"></script><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@latest/velocity.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-ui-pack@latest/velocity.ui.min.js"></script><script src="/js/utils.js?version=1.9.0"></script><script src="/js/fancybox.js?version=1.9.0"></script><script src="/js/sidebar.js?version=1.9.0"></script><script src="/js/copy.js?version=1.9.0"></script><script src="/js/fireworks.js?version=1.9.0"></script><script src="/js/transition.js?version=1.9.0"></script><script src="/js/scroll.js?version=1.9.0"></script><script src="/js/head.js?version=1.9.0"></script><script src="/js/search/local-search.js"></script><script>if(/Android|webOS|iPhone|iPod|iPad|BlackBerry/i.test(navigator.userAgent)) {
+  $('#nav').addClass('is-mobile')
+  $('footer').addClass('is-mobile')
+  $('#top-container').addClass('is-mobile')
+}</script><div class="search-dialog" id="local-search"><div class="search-dialog__title" id="local-search-title">Local search</div><div id="local-input-panel"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="Search for Posts"></div></div></div><hr><div id="local-search-results"><div id="local-hits"></div><div id="local-stats"><div class="local-search-stats__hr" id="hr"><span>Powered by</span> <a target="_blank" rel="noopener" href="https://github.com/wzpan/hexo-generator-search" style="color:#49B1F5;">hexo-generator-search</a></div></div></div><span class="search-close-button"><i class="fa fa-times"></i></span></div><div class="search-mask"></div><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"jsonPath":"/live2dw/assets/koharu.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":true},"react":{"opacity":0.7},"log":false});</script></body></html>
